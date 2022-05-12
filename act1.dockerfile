@@ -40,7 +40,7 @@ RUN pip3 install flask-swagger-ui
 
 RUN git clone https://github.com/amilcaralex97/api-flask-modelo-predictivo.git \
     && cd api-flask-modelo-predictivo \
-    && git checkout act-4-post-put
+    && git checkout act-6
 
 WORKDIR /api-flask-modelo-predictivo
 
