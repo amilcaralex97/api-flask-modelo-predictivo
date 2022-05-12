@@ -1,16 +1,12 @@
 FROM ubuntu:20.04
 ENV PATH="/root/miniconda3/bin:${PATH}"
 ARG PATH="/root/miniconda3/bin:${PATH}"
-ENV FLASK_APP=model_api.py
-ENV FLASK_ENV = development
-ENV FLASK_DEBUG = 0
 
 #Install pip
 RUN apt-get update \ 
     && apt -y upgrade
-RUN apt-get install python3-pip -y \
-    && apt-get install git -y
-    #install virtualenv
+RUN apt-get install python3-pip -y
+#install virtualenv
 RUN pip3 install virtualenv
 #create venv named analisis
 RUN mkdir analisis
@@ -33,21 +29,7 @@ RUN cd .. \
     && cd api
 RUN virtualenv api
 RUN . api/bin/activate
-RUN pip3 install Flask
-RUN pip3 install flask-swagger-ui
+RUN pip3 install Flask \
+    && pip install swagger
 
-#clone git repo
-
-RUN git clone https://github.com/amilcaralex97/api-flask-modelo-predictivo.git \
-    && cd api-flask-modelo-predictivo
-
-WORKDIR /api-flask-modelo-predictivo
-
-RUN pip install -r requirements.txt
-
-RUN export FLASK_APP=model_api.py
-RUN export FLASK_ENV=development
-RUN export FLASK_DEBUG=0
-
-#Run server on container
-CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
+# pull clone git repo
