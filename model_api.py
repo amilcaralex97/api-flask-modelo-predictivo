@@ -78,12 +78,19 @@ observacion_repr = api.model('Observacion', {
 
 # =======================================================================================
 predictive_model = pickle.load(open('simple_model.pkl', 'rb'))
+classified_observation = api.model('ObservacionCalificada', {
+    'sepal_length': fields.Float(description="Longitud del sépalo"),
+    'sepal_width': fields.Float(description="Anchura del sépalo"),
+    'petal_length': fields.Float(description="Longitud del pétalo"),
+    'petal_width': fields.Float(description="Anchura del pétalo"),
+    'class': fields.String(description='Clase real de la flor')
+})
 
 
 # =======================================================================================
 # Las siguientes clases modelan las solicitudes REST al API. Usamos el objeto del espacio
 # de nombres "ns" para que RESTX comprenda que estas clases y métodos son los manejadores
-# del API REST. 
+# del API REST.
 
 # La siguiente línea indica que esta clase va a manejar los recursos que se encuentran en
 # el URI raíz (/), y que soporta los métodos GET y POST.
@@ -103,7 +110,7 @@ class PredictionListAPI(Resource):
         # Prediction.query.all() obtiene un listado de todas las predicciones de la base
         # de datos. Internamente ejecuta un "SELECT * FROM predicciones".
         # Consulta el script models.py para conocer más de este mapeo.
-        # Además, consulta la documentación de SQL Alchemy para conocer los métodos 
+        # Además, consulta la documentación de SQL Alchemy para conocer los métodos
         # disponibles para consultar la base de datos desde los modelos de Python.
         # https://flask-sqlalchemy.palletsprojects.com/en/2.x/queries/#querying-records
         return [
@@ -155,11 +162,27 @@ class PredictionListAPI(Resource):
 
 
 # =======================================================================================
-# La siguiente línea de código maneja las solicitudes GET del listado de predicciones 
+# La siguiente línea de código maneja las solicitudes GET del listado de predicciones
 # acompañadas de un identificador de predicción, para obtener los datos de una particular
 # Si el API permite modificar predicciones particulares, aquí se debería de manejar el
 # método PUT o PATCH para una predicción en particular.
-@ns.route('/<int:prediction_id>', methods=['GET'])
+def _update_observation(prediction_id):
+    """
+    """
+    prediction = Prediction.query.filter_by(prediction_id=prediction_id).first()
+    if not prediction:
+        return 'Id {} no existe en la base de datos'.format(prediction_id), 404
+    else:
+        # ---------------------------------------------------------------------------
+        # Modifica este bloque de código para actualizar la observación con la clase
+        # real. No olvides actualizar la observación en la base de datos, para poder
+        # calcular las métricas de desempeño del modelo.
+        print('Payload: {}'.format(api.payload))
+        return 'Observación actualizada', 200
+        # ---------------------------------------------------------------------------
+
+
+@ns.route('/<int:prediction_id>', methods=['GET', 'PUT'])
 class PredictionAPI(Resource):
     """ Manejador de una predicción particular
     """
@@ -181,6 +204,14 @@ class PredictionAPI(Resource):
             # Se usa la función "marshall_prediction" para convertir la predicción de la
             # base de datos a un recurso REST
             return marshall_prediction(prediction), 200
+
+    @ns.doc({'prediction_id': 'Identificador de la predicción'})
+    @ns.expect(classified_observation)
+    def put(self, prediction_id):
+        """ Este método maneja la actualización de una observación con la clase que
+            tiene en la realidad.
+        """
+        return _update_observation(prediction_id)
 
 
 # =======================================================================================
