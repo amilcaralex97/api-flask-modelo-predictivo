@@ -182,7 +182,7 @@ def _update_observation(prediction_id):
         # ---------------------------------------------------------------------------
 
 
-@ns.route('/<int:prediction_id>', methods=['GET', 'PUT'])
+@ns.route('/<int:prediction_id>', methods=['GET', 'PUT', 'PATCH'])
 class PredictionAPI(Resource):
     """ Manejador de una predicción particular
     """
@@ -212,6 +212,14 @@ class PredictionAPI(Resource):
             tiene en la realidad.
         """
         return _update_observation(prediction_id)
+
+    @ns.doc({'prediction_id': 'Identificador de la predicción'})
+    @ns.expect(classified_observation)
+    def patch(self, prediction_id):
+        """ El metodo controla la actualizacion, la diferencia es el metodo, pende de la regla del HATEOAS
+        y del desarrollador que integre o no la norma.
+        """
+        return self._update_observation(prediction_id)
 
 
 # =======================================================================================
